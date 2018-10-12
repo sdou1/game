@@ -1,0 +1,483 @@
+{
+	"info": {
+		"name": "game",
+		"_postman_id": "0b6716de-0c86-3599-8acd-86b53e5603f6",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Award",
+			"description": "",
+			"item": [
+				{
+					"name": "add award",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game_award\":{\n\t\t\"game_round_id\": 17,\n\t\t\"name\": \"一等奖\"\n\t}\t\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/game_award/addaward",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_award",
+								"addaward"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get all awards of game round",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8089/api/game_award/allawards/17",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_award",
+								"allawards",
+								"17"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete award",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8089/api/game_award/80",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_award",
+								"80"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get one award info by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8089/api/game_award/76",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_award",
+								"76"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "update award",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game_award\":{\n\t\t\"prize_name\": \"gift\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/game_award/updateaward/76",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_award",
+								"updateaward",
+								"76"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Game",
+			"description": "",
+			"item": [
+				{
+					"name": "get all games",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8089/API/games/getallgames",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"API",
+								"games",
+								"getallgames"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "add game",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game\": {\n\t\"name\": \"Fuzz\",\n\t\"code\": \"10023\",\n\t\"desc\": \"this is description for new game\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/API/games/add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"API",
+								"games",
+								"add"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete game",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8089/api/games/27",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"games",
+								"27"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "update game",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game\":{\n\t\t\"id\": \"26\",\n\t\t\"attributes\": {\n\t\t\t\"desc\": \"pppp my another description 312 for new game ppppp\"\n\t\t}\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/games/update",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"games",
+								"update"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Game round",
+			"description": "",
+			"item": [
+				{
+					"name": "get all game round",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8089/api/game_round/getallrounds",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_round",
+								"getallrounds"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "create game round",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game_round\":{\n\t\t\"name\": \"my new game69\",\n\t\t\"desc\": \"round description\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/game_round/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_round",
+								"create"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "start",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game_round_id\":50\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/game_round/start/79",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_round",
+								"start",
+								"79"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get all players score",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game_round_id\": 46\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/game_round/getallplayerscore/78",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_round",
+								"getallplayerscore",
+								"78"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete round",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8089/api/game_round/57",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_round",
+								"57"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Player",
+			"description": "",
+			"item": [
+				{
+					"name": "add player to round",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"game_round_player\":{\n\t\t\"game_round_id\": 79,\n\t\t\"nickname\": \"pppsdou912fdsaffsdfqqqqq382\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/game_player/addplayer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_player",
+								"addplayer"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "update score",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"player_score\": {\n\t\t\"game_round_id\": 79,\n\t\t\"player_id\": 406,\n\t\t\"score\": 100,\n\t\t\"isFinished\": true\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8089/api/game_player/updatescore",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"game_player",
+								"updatescore"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
