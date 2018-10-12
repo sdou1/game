@@ -1,0 +1,10 @@
+const express = require('express')
+const router = express.Router()
+const gameRoundController = require('../CONTROLLER/gameRoundController')
+const gameRoundPolicy = require('../CONTROLLERPOLICY/gameRoundPolicy')
+router.get('/getallrounds', gameRoundController.getAllRounds)
+router.put('/create', gameRoundController.createRound)
+router.delete('/*', gameRoundController.deleteRound)
+router.get('/start/*', gameRoundPolicy.startRound, gameRoundController.startRound)
+router.get('/getallplayerscore/*', gameRoundController.getRoundAllPlayersScore)
+module.exports = router
