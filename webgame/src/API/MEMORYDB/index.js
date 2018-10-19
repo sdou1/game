@@ -72,7 +72,7 @@ class memorydb {
         var round = memorydb.GAMEROUNDS.get(gameroundid)
         if (!round)
             return info
-        info.players = round.getAllPlayersInfo.sort((x, y)=>{
+        info.players = round.getAllPlayersInfo.sort((x, y) => {
             return x.score < y.score
         })
         return info
@@ -87,12 +87,12 @@ class memorydb {
             return -1
         var round = memorydb.GAMEROUNDS.get(p.gameRoundId)
         var pScores = round.getAllPlayersInfo
-        var index = pScores.sort((x, y) => {
-            return x.score < y.score
-        }).findIndex((x) => {
-            return x.player_id === playerid
+        var position = 1
+        pScores.forEach(x => {
+            if (x.score > p.score)
+                position++
         })
-        return index + 1
+        return position
     }
     /**
      * initialize the round

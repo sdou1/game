@@ -2,29 +2,28 @@ const messageContent = require('../constant')
 const { game_players } = require('../DBMODAL')
 const gameRound = require('./gameRoundController')
 const memoryDB = require('../MEMORYDB')
-const Console = console
+const { LogMessage } = require('../common')
 module.exports = {
     /**
      * add player to round before start the round
      * @param {*} req 
      * @param {*} res 
      */
-    addPlayerToRound(req, res) {
+    async addPlayerToRound(ctx) {
+        var req = ctx.request
         try {
             var player = req.body.game_round_player
-            game_players.create(player).then(tmp => {
-                if (memoryDB.addPlayer(req.body.game_round_player.game_round_id, tmp.id)) {
-                    var rs = {}
-                    rs.game_round_player = tmp
-                    res.send(rs)
-                }
-                else
-                    res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.addPlayerToMemoryFail)
-            }, error => {
-                res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.addPlayerToRound + ' ' + error)
-            })
+            var tmp = await game_players.create(player)
+            if (memoryDB.addPlayer(req.body.game_round_player.game_round_id, tmp.id)) {
+                var rs = {}
+                rs.game_round_player = tmp
+                ctx.body = rs
+                ctx.status = 200
+            }
+            else
+                ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.addPlayerToMemoryFail, { expose: true })
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.addPlayerToRound)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.addPlayerToRound, { expose: true })
         }
     },
     /**
@@ -32,7 +31,7 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    updatePlayerScore(req, res) {
+    async updatePlayerScore(ctx) {
         function updateAllPlayersRoundScoreToDB(gameroundid) {
             var playerInfo = memoryDB.getRoundPlayerScore(gameroundid)
             for (var player of playerInfo.players) {
@@ -41,11 +40,10 @@ module.exports = {
                     where: {
                         id: player.player_id
                     }
-                }).then(() => {
-                    Console.log(`update score(${score}) for player(${player.player_id}) successfully`)
                 })
             }
         }
+        var req = ctx.request
         try {
             var gameroundid = req.body.player_score.game_round_id
             var playerid = req.body.player_score.player_id
@@ -55,10 +53,10 @@ module.exports = {
                 gameRound.updateRoundFinishedTime(gameroundid, updateAllPlayersRoundScoreToDB)
             }
             memoryDB.updatePlayerScore(playerid, score, isFinishied)
-            Console.log('the game round is over')
-            res.end()
+            LogMessage('log', 'the game round is over')
+            ctx.status = 200
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.updateScoreFail + ': ' + error)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.updateScoreFail + ': ' + error, { expose: true })
         }
-    }    
+    }
 }

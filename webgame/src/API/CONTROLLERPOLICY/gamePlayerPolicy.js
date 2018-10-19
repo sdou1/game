@@ -1,53 +1,54 @@
 const messageContent = require('../constant')
 const memoryDb = require('../MEMORYDB')
 module.exports = {
-        /**
-     * check if can add player to round
-     * @param {*} req 
-     * @param {*} res 
-     * @param {*} next 
-     */
-    addPlayerToRound(req, res, next) {
+    /**
+ * check if can add player to round
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+    async addPlayerToRound(ctx, next) {
         try {
-            var gameroundid = req.body.game_round_player.game_round_id
+            var gameroundid = ctx.request.body.game_round_player.game_round_id
             if (!memoryDb.isRoundExist(gameroundid)) {
                 throw messageContent.FailMessage.addPlayerToRound
             }
             if (memoryDb.isGameRoundRuning(gameroundid)) {
-                res.status(messageContent.ResponeStatus.AlreadyRuning).end()
+                ctx.throw(messageContent.ResponeStatus.AlreadyRuning)
             } else if (memoryDb.isGameRoundOver(gameroundid)) {
-                res.status(messageContent.ResponeStatus.AlreadyOver).end()
+                ctx.throw(messageContent.ResponeStatus.AlreadyOver)
             } else {
-                next()
+                await next()
             }
         } catch (error) {
-            res.status(500).send(messageContent.FailMessage.addPlayerToRound)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.addPlayerToRound + error, { expose: true })
         }
     },
 
-    updatePlayerScore(req,res,next) {
+    async updatePlayerScore(ctx, next) {
         try {
-            var gameroundid = req.body.player_score.game_round_id
-            var playerid = req.body.player_score.player_id
+            var gameroundid = ctx.request.body.player_score.game_round_id
+            var playerid = ctx.request.body.player_score.player_id
             if (!memoryDb.hasPlayer(gameroundid, playerid)) {
                 throw messageContent.FailMessage.roundWithoutPlayer
             }
 
             if (!memoryDb.isGameRoundRuning(gameroundid)) {
-                res.status(messageContent.ResponeStatus.RoundNotRun).send(messageContent.FailMessage.roundIsNotRunning)
+                ctx.throw(messageContent.ResponeStatus.RoundNotRun, messageContent.FailMessage.roundIsNotRunning, { expose: true })
             } else if (memoryDb.isGameRoundOver(gameroundid)) {
-                res.status(messageContent.ResponeStatus.AlreadyOverWithPosition).send({
-                    player_score:{
+                ctx.status = messageContent.ResponeStatus.AlreadyOverWithPosition
+                ctx.body = {
+                    player_score: {
                         player_id: playerid,
                         score: memoryDb.getPlayerScore(playerid),
                         position: memoryDb.getRoundPosition(playerid)
                     }
-                })
+                }
             } else {
-                next()
+                await next()
             }
         } catch (error) {
-            res.status(500).send(messageContent.FailMessage.updateScoreFail)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.updateScoreFail + error, { expose: true })
         }
     }
 }

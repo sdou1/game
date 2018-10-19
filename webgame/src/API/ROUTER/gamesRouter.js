@@ -1,6 +1,7 @@
-const express = require('express')
-const router = express.Router()
+
+const koaRouter = require('koa-router')
 const gamecontroller = require('../CONTROLLER/gamesController')
+const router = new koaRouter()
 router.get('/getallgames', gamecontroller.getAllGames)
 router.delete('/*', gamecontroller.deleteGame)
 router.put('/add', gamecontroller.addGame)

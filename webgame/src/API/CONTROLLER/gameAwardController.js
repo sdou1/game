@@ -1,72 +1,78 @@
 const { game_awards } = require('../DBMODAL')
 const messageContent = require('../constant')
 module.exports = {
-    getAllAwards(req, res) {
-        var game_round_id = req.params[0]
-        game_awards.findAll({
-            attributes: ['id', 'game_round_id', 'name', 'position', 'prize_count', 'prize_name'],
-            where: {
-                'game_round_id': game_round_id
-            }
-        }).then(data => {
+    async getAllAwards(ctx) {
+        try {
+            var game_round_id = ctx.params[0]
+            var data = await game_awards.findAll({
+                attributes: ['id', 'game_round_id', 'name', 'position', 'prize_count', 'prize_name'],
+                where: {
+                    'game_round_id': game_round_id
+                }
+            })
             var awards = {}
             awards.game_awards = data
-            res.send(awards)
-        }, error => {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.getAllGameAwardFail + 'Fail: ' + error)
-        })
+            ctx.body = awards
+            ctx.status = 200
+        } catch (error) {
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.getAllGameAwardFail, { expose: true })
+        }
     },
 
-    addAward(req, res) {
-        var award = req.body.game_award
-
-        game_awards.create(award).then((rs) => {
-            res.send(rs)
-        }, error => {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.addGameAwardFail + 'Fail: ' + error)
-        })
+    async addAward(ctx) {
+        try {
+            var award = ctx.request.body.game_award
+            ctx.body = await game_awards.create(award)
+            ctx.status = 200
+        } catch (error) {
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.addGameAwardFail + 'Fail: ' + error, { expose: true })
+        }
     },
 
-    deleteAward(req, res) {
-        var award_id = req.params[0]
-        game_awards.destroy({
-            where: {
-                id: award_id
-            }
-        }).then(() => {
-            res.end()
-        }, error => {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.deleteAwardFail + 'Fail: ' + error)
-        })
+    async deleteAward(ctx) {
+        try {
+            var award_id = ctx.params[0]
+            await game_awards.destroy({
+                where: {
+                    id: award_id
+                }
+            })
+            ctx.status = 200
+        } catch (error) {
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.deleteAwardFail + 'Fail: ' + error, { expose: true })
+        }
     },
 
-    async updateAward(req, res) {
-        var award_id = req.params[0]
-        var award = req.body.game_award
-        game_awards.update(award, {
-            where: {
-                id: award_id
-            }
-        }).then((rs) => {
-            res.send(rs)
-        }, (error) => {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.updateAwardFail+' Fail:'+ error)
-        })
+    async updateAward(ctx) {
+        try {
+            var award_id = ctx.params[0]
+            var award = ctx.request.body.game_award
+            ctx.body = await game_awards.update(award, {
+                where: {
+                    id: award_id
+                }
+            })
+            ctx.status = 200
+        } catch (error) {
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.updateAwardFail + ' Fail:' + error, { expose: true })
+        }
     },
 
-    getAward(req, res) {
-        var award_id = req.params[0]
-        game_awards.findOne({
-            attributes: ['id', 'game_round_id', 'name', 'position', 'prize_count', 'prize_name'],
-            where: {
-                id: award_id
-            }
-        }).then((award) => {
+    async getAward(ctx) {
+        try {
+            var award_id = ctx.params[0]
+            var award = await game_awards.findOne({
+                attributes: ['id', 'game_round_id', 'name', 'position', 'prize_count', 'prize_name'],
+                where: {
+                    id: award_id
+                }
+            })
             var rs = {}
             rs.game_award = award
-            res.send(rs)
-        }, error => {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.getAwardFail + 'Fail: ' + error)
-        })
+            ctx.body = rs
+            ctx.status = 200
+        } catch (error) {
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.getAwardFail + 'Fail: ' + error, { expose: true })
+        }
     }
 }

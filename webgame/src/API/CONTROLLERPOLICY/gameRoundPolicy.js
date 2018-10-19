@@ -7,35 +7,35 @@ module.exports = {
      * @param {*} res 
      * @param {*} next 
      */
-    deleteRound(req,res,next){
+    async deleteRound(ctx, next) {
         try {
-            var gameroundid = parseInt(req.params[0])
+            var gameroundid = parseInt(ctx.params[0])
             if (memoryDb.isGameRoundRuning(gameroundid)) {
-                res.send(messageContent.FailMessage.roundAlreadyRuning)
+                ctx.throw(messageContent.ResponeStatus.AlreadyRuning, messageContent.FailMessage.roundAlreadyRuning, { expose: true })
             } else {
-                next()
+                await next()
             }
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.deleteRoundFail)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.deleteRoundFail, { expose: true })
         }
     },
 
-    startRound(req, res, next) {
+    async startRound(ctx, next) {
         try {
-            var gameroundid = parseInt(req.params[0])
+            var gameroundid = parseInt(ctx.params[0])
             if (memoryDb.isEmpty(gameroundid)) {
                 throw messageContent.FailMessage.startRoundFail
             }
 
             if (memoryDb.isGameRoundRuning(gameroundid)) {
-                res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.roundAlreadyRuning)
+                throw messageContent.FailMessage.roundAlreadyRuning
             } else if (memoryDb.isGameRoundOver(gameroundid)) {
-                res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.roundAlreadyOver)
+                throw messageContent.FailMessage.roundAlreadyOver
             } else {
-                next()
+                await next()
             }
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.startRoundFail)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.startRoundFail, { expose: true })
         }
     }
 }

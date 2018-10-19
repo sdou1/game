@@ -17,16 +17,21 @@ module.exports = {
         addPlayerToMemoryFail: 'add player to memory fail.',
         startRoundFailToMemory: 'start round fail when add to memory'
     },
-    getErrorMessge(){
-        return 'my error message'
-    },
-
-    ResponeStatus:{
-        CommonError: 500, //common error status
-        AlreadyRuning: 501, //the round already running
-        AlreadyOver: 502, //the round already over
-        AlreadyOverWithPosition: 503,
-        RoundNotRun: 504
+    ResponeStatus: {
+        CommonError: 600, //common error status
+        /**
+         * the round already running
+         */
+        get AlreadyRuning() { return this.CommonError + 1 }, 
+        /**
+         * the round already over
+         */
+        get AlreadyOver() {return this.CommonError + 2  },
+        /**
+         * 
+         */
+        get AlreadyOverWithPosition() { return this.CommonError + 3 },
+        get RoundNotRun() {return this.CommonError + 4 }
     }
 }
 

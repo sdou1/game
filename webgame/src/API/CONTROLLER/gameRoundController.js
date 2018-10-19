@@ -1,39 +1,38 @@
 const messageContent = require('../constant')
 const { Sequelize, game_rounds, games, game_players, game_awards } = require('../DBMODAL')
 const memoryDB = require('../MEMORYDB')
-const Console = console
+const { LogMessage } = require('../common')
 module.exports = {
     /**
      * get all the round information
      * @param {*} req 
      * @param {*} res 
      */
-    getAllRounds(req, res) {
+    async getAllRounds(ctx) {
         try {
             var roundsInfo = new Array()
-            games.findAll({
+            var allgames = await games.findAll({
                 'attributes': ['id', 'name']
-            }).then(allgames => {
-                game_rounds.findAll({
-                    'attributes': ['id', 'name', 'game_id', 'start_at', 'end_at']
-                }).then(allrounds => {
-                    allrounds.forEach((round) => {
-                        allgames.forEach(game => {
-                            if (!round.name && game.id === round.game_id)
-                                round.setDataValue('name', game.name)
-                        })
-                        roundsInfo.push(round)
-                    })
-                    var tmpInfo = {}
-                    tmpInfo.game_rounds = roundsInfo
-                    res.send(tmpInfo)
-                    Console.log('get all rounds successfully')
-                })
             })
+            var allrounds = await game_rounds.findAll({
+                'attributes': ['id', 'name', 'game_id', 'start_at', 'end_at']
+            })
+            allrounds.forEach((round) => {
+                allgames.forEach(game => {
+                    if (!round.name && game.id === round.game_id)
+                        round.setDataValue('name', game.name)
+                })
+                roundsInfo.push(round)
+            })
+            var tmpInfo = {}
+            tmpInfo.game_rounds = roundsInfo
+            ctx.body = tmpInfo
+            ctx.status = 200
+            LogMessage('log', 'get all rounds successfully')
         }
         catch (error) {
-            res.status(500).send('can not get all rounds')
-            Console.log('can not get all rounds: ' + error)
+            ctx.throw(messageContent.ResponeStatus.CommonError, 'can not get all rounds', { expose: true })
+            LogMessage('error', 'can not get all rounds: ' + error)
         }
     },
     /**
@@ -41,7 +40,8 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    async createRound(req, res) {
+    async createRound(ctx) {
+        var req = ctx.request
         try {
             var round = {
                 game_id: req.body.game_round.game_id,
@@ -54,10 +54,11 @@ module.exports = {
                 memoryDB.createNewRound(tmp.id)
                 var game_round = {}
                 game_round.game_round = tmp
-                res.send(game_round)
+                ctx.body = game_round
+                ctx.status = 200
             }
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(`create round ${req.body.desc} fail: ` + error)
+            ctx.throw(messageContent.ResponeStatus.CommonError, `create round ${req.body.desc} fail: ` + error, { expose: true })
         }
     },
     /**
@@ -65,30 +66,29 @@ module.exports = {
      * @param {} req 
      * @param {*} res 
      */
-    deleteRound(req, res) {
+    async deleteRound(ctx) {
         try {
-            var game_round_id = parseInt(req.params[0])
-            game_awards.destroy({
+            var game_round_id = parseInt(ctx.params[0])
+            await game_awards.destroy({
                 where: {
                     'game_round_id': game_round_id
                 }
-            }).then(() => {
-                game_players.destroy({
-                    where: {
-                        'game_round_id': game_round_id
-                    }
-                })
-            }).then(() => {
-                game_rounds.destroy({
-                    where: {
-                        id: game_round_id
-                    }
-                }).then(() => {
-                    res.end()
-                })
             })
+            await game_players.destroy({
+                where: {
+                    'game_round_id': game_round_id
+                }
+            })
+
+            await game_rounds.destroy({
+                where: {
+                    id: game_round_id
+                }
+            })
+            ctx.status = 200
+
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(`delete round ${req.params[0]} fail: ` + error)
+            ctx.throw(messageContent.ResponeStatus.CommonError, `delete round ${ctx.params[0]} fail: ` + error, { expose: true })
         }
     },
     /**
@@ -96,25 +96,21 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    startRound(req, res) {
+    async startRound(ctx) {
         try {
-            var game_round_id = parseInt(req.params[0])
+            var game_round_id = parseInt(ctx.params[0])
             if (!memoryDB.startRound(game_round_id)) {
-                res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.startRoundFailToMemory)
+                throw 'can not start the round in memory db'
             }
-            game_rounds.update({ start_at: Sequelize.fn('NOW') }, {
+            await game_rounds.update({ start_at: Sequelize.fn('NOW') }, {
                 returning: true,
                 where: {
                     id: game_round_id
                 }
-            }).then(() => {
-                res.end()
-            }, (error) => {
-                memoryDB.resetRound(game_round_id)
-                res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.startRoundFail + ': ' + error)
             })
+            ctx.status = 200
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.startRoundFail + ': ' + error)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.startRoundFail + ': ' + error, { expose: true })
         }
     },
     /**
@@ -122,9 +118,9 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    getRoundAllPlayersScore(req, res) {
+    async getRoundAllPlayersScore(ctx) {
         try {
-            var gameroundid = parseInt(req.params[0])
+            var gameroundid = parseInt(ctx.params[0])
             var playerInfo = {}
             var game_round_players = {}
             if (memoryDB.isRoundExist(gameroundid)) {
@@ -132,33 +128,32 @@ module.exports = {
                 playerInfo.game_round_id = gameroundid
                 playerInfo.isFinished = memoryDB.isGameRoundOver(gameroundid)
                 game_round_players.game_round_score = playerInfo
-                res.send(game_round_players)
+                ctx.body = game_round_players
+                ctx.status = 200
             }
             else {
-                game_players.findAll({
+                var rs = await game_players.findAll({
                     where: {
                         game_round_id: gameroundid
                     },
-                    order:[['score', 'DESC']] 
-                }).then((rs) => {
-                    playerInfo.players = new Array()
-                    rs.forEach((x) => {
-                        var player = {
-                            player_id: x.id,
-                            score: x.score
-                        }
-                        playerInfo.players.push(player)
-                    })
-                    playerInfo.isFinished = true
-                    playerInfo.game_round_id = gameroundid
-                    game_round_players.game_round_score = playerInfo
-                    res.send(game_round_players)
-                }, (error) => {
-                    res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.roundAllPlayerInfo + ': ' + error)
+                    order: [['score', 'DESC']]
                 })
+                playerInfo.players = new Array()
+                rs.forEach((x) => {
+                    var player = {
+                        player_id: x.id,
+                        score: x.score
+                    }
+                    playerInfo.players.push(player)
+                })
+                playerInfo.isFinished = true
+                playerInfo.game_round_id = gameroundid
+                game_round_players.game_round_score = playerInfo
+                ctx.body = game_round_players
+                ctx.status = 200
             }
         } catch (error) {
-            res.status(messageContent.ResponeStatus.CommonError).send(messageContent.FailMessage.roundAllPlayerInfo + ': ' + error)
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.roundAllPlayerInfo + ': ' + error, { expose: true })
         }
     },
 
@@ -169,11 +164,10 @@ module.exports = {
                 where: {
                     id: gameroundid
                 }
-            }).then(() => {
-                updatePlayerScoreToDB(gameroundid)
             })
+            updatePlayerScoreToDB(gameroundid)
         } catch (error) {
-            Console.log('updateRoundFinishedTime: '+ error)
+            LogMessage('error', 'updateRoundFinishedTime: ' + error)
         }
     }
 }
