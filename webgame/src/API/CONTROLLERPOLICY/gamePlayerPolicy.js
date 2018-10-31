@@ -10,12 +10,12 @@ module.exports = {
     async addPlayerToRound(ctx, next) {
         try {
             var gameroundid = ctx.request.body.game_round_player.game_round_id
-            if (!memoryDb.isRoundExist(gameroundid)) {
+            if (!await memoryDb.isRoundExist(gameroundid)) {
                 throw messageContent.FailMessage.addPlayerToRound
             }
-            if (memoryDb.isGameRoundRuning(gameroundid)) {
+            if (await memoryDb.isGameRoundRuning(gameroundid)) {
                 ctx.throw(messageContent.ResponeStatus.AlreadyRuning)
-            } else if (memoryDb.isGameRoundOver(gameroundid)) {
+            } else if (await memoryDb.isGameRoundOver(gameroundid)) {
                 ctx.throw(messageContent.ResponeStatus.AlreadyOver)
             } else {
                 await next()
@@ -29,19 +29,19 @@ module.exports = {
         try {
             var gameroundid = ctx.request.body.player_score.game_round_id
             var playerid = ctx.request.body.player_score.player_id
-            if (!memoryDb.hasPlayer(gameroundid, playerid)) {
+            if (!await memoryDb.hasPlayer(gameroundid, playerid)) {
                 throw messageContent.FailMessage.roundWithoutPlayer
             }
 
-            if (!memoryDb.isGameRoundRuning(gameroundid)) {
+            if (!await memoryDb.isGameRoundRuning(gameroundid)) {
                 ctx.throw(messageContent.ResponeStatus.RoundNotRun, messageContent.FailMessage.roundIsNotRunning, { expose: true })
-            } else if (memoryDb.isGameRoundOver(gameroundid)) {
+            } else if (await memoryDb.isGameRoundOver(gameroundid)) {
                 ctx.status = messageContent.ResponeStatus.AlreadyOverWithPosition
                 ctx.body = {
                     player_score: {
                         player_id: playerid,
-                        score: memoryDb.getPlayerScore(playerid),
-                        position: memoryDb.getRoundPosition(playerid)
+                        score: await memoryDb.getPlayerScore(gameroundid, playerid),
+                        position: await memoryDb.getRoundPosition(gameroundid, playerid)
                     }
                 }
             } else {

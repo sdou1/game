@@ -1,3 +1,4 @@
+
 module.exports = {
     db: {
         database: process.env.DB_NAME || 'webgame',
@@ -10,6 +11,14 @@ module.exports = {
             operatorsAliases: false,
             insecureAuth: true 
         }
+    },
+
+    redis:{
+        port: process.env.MEMDB_PORT || 6379,  
+        host: process.env.MEMDB_HOST || '127.0.0.1',
+        ops:{
+            //auth_pass: '123456'
+        } 
     },
     Bcrypt: {
         salt: 10 //bcryptjs 

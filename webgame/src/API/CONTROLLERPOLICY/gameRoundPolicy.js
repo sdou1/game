@@ -10,7 +10,7 @@ module.exports = {
     async deleteRound(ctx, next) {
         try {
             var gameroundid = parseInt(ctx.params[0])
-            if (memoryDb.isGameRoundRuning(gameroundid)) {
+            if (await memoryDb.isGameRoundRuning(gameroundid)) {
                 ctx.throw(messageContent.ResponeStatus.AlreadyRuning, messageContent.FailMessage.roundAlreadyRuning, { expose: true })
             } else {
                 await next()
@@ -23,19 +23,19 @@ module.exports = {
     async startRound(ctx, next) {
         try {
             var gameroundid = parseInt(ctx.params[0])
-            if (memoryDb.isEmpty(gameroundid)) {
+            if (await memoryDb.isEmpty(gameroundid)) {
                 throw messageContent.FailMessage.startRoundFail
             }
 
-            if (memoryDb.isGameRoundRuning(gameroundid)) {
+            if (await memoryDb.isGameRoundRuning(gameroundid)) {
                 throw messageContent.FailMessage.roundAlreadyRuning
-            } else if (memoryDb.isGameRoundOver(gameroundid)) {
+            } else if (await memoryDb.isGameRoundOver(gameroundid)) {
                 throw messageContent.FailMessage.roundAlreadyOver
             } else {
                 await next()
             }
         } catch (error) {
-            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.startRoundFail, { expose: true })
+            ctx.throw(messageContent.ResponeStatus.CommonError, messageContent.FailMessage.startRoundFail+':'+error, { expose: true })
         }
     }
 }

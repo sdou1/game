@@ -1,107 +1,197 @@
 const GameRound = require('./gameround')
 const player = require('./player')
+const redisClient = require('./redisClient')
+const GAMEROUNDS_STRING = 'GAMEROUNDS'
 class memorydb {
     constructor() {
     }
 
     static createNewRound(gameroundid) {
-
-        if (memorydb.GAMEROUNDS.has(gameroundid) && memorydb.GAMEROUNDS.get(gameroundid).isgameover)
-            return false
-
-        memorydb.GAMEROUNDS.set(gameroundid, new GameRound(gameroundid))
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error) // already exist
+                    resolve(false)
+                else {
+                    if (!rounds) rounds = new Map()
+                    var bExist = rounds.get(gameroundid)
+                    if (bExist) resolve(false)
+                    else {
+                        rounds.set(gameroundid, new GameRound(gameroundid))
+                        memorydb.GAMEROUNDS.set(GAMEROUNDS_STRING, rounds, () => {
+                            resolve(true)
+                        })
+                    }
+                }
+            })
+        })
+        return p
     }
 
     static addPlayer(gameroundid, playerid, name) {
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (!round)
-            return false
-        var p = new player(gameroundid, playerid, name)
-        memorydb.PLAYERS.set(playerid, p)
-        round.addPlayer(p)
-        return true
+        var p = new Promise((resolve) => {
+            memorydb.PLAYERS.get(gameroundid, (error, players) => {
+                if (error)
+                    resolve(false)
+                else {
+                    var p = new player(gameroundid, playerid, name)
+                    if (!players) players = new Map()
+                    players.set(playerid, p)
+                    memorydb.PLAYERS.set(gameroundid, players, (error) => {
+                        if (error) resolve(false)
+                        else {
+                            resolve(true)
+                        }
+                    })
+                }
+            })
+        })
+        return p
     }
     /**
      * * start the round 
      * @param {*} gameroundid 
      */
     static startRound(gameroundid) {
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (round) {
-            round.startRound()
-            return true
-        }
-        return false
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error || !rounds) resolve(false)
+                else {
+                    var round = rounds.get(gameroundid)
+
+                    if (round) {
+                        round.roundruning = true
+                        memorydb.GAMEROUNDS.update(GAMEROUNDS_STRING, rounds)
+                    }
+                    resolve(round)
+                }
+            })
+        })
+        return p
+    }
+    /**
+     * set the round state
+     * @param {*} gameroundid 
+     * @param {*} state 
+     */
+    static updateRoundState(gameroundid, state) {
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error || !rounds) resolve(false)
+                else {
+                    var round = rounds.get(gameroundid)
+                    if (round) {
+                        round.state = state
+                        memorydb.GAMEROUNDS.update(GAMEROUNDS_STRING, rounds)
+                    }
+                    resolve(round)
+                }
+            })
+        })
+        return p
+    }
+
+    static getRoundState(gameroundid) {
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error || !rounds) resolve(false)
+                else {
+                    var round = rounds.get(gameroundid)
+                    if (round) {
+                        resolve(round.state)
+                    }
+                    else
+                        resolve(-1)
+                }
+            })
+        })
+        return p
     }
     /**
      * * udpate the player score 
      * @param {*} gameroundid  the id of the round which the playe join 
      * @param {*} playerid  the player id from client
      * @param {*} score      the player's core from client
-     * @param {*} isfinished if the player is finished the game from client
      */
-    static updatePlayerScore(playerid, score, isfinished) {
-        var p = memorydb.PLAYERS.get(playerid)
-        if (!p) return false
-        var round = memorydb.GAMEROUNDS.get(p.gameRoundId)
-        if (round) {
-            p.score = score
-            if (isfinished) {
-                round.roundOver()
-            }
-            return true
-        }
-        return false
+    static updatePlayerScore(gameroundid, playerid, score) {
+
+        var p = new Promise((resolve) => {
+            memorydb.PLAYERS.get(gameroundid, (error, players) => {
+                if (error || !players) resolve(false)
+                else {
+                    var player = players.get(playerid)
+                    if (!player) resolve(false)
+                    else {
+                        player.player_score = score
+                        memorydb.PLAYERS.update(gameroundid, players, () => {
+                            resolve(true)
+                        })
+                    }
+                }
+            })
+        })
+
+        return p
     }
     /**
      * get score of the player in the round
+     * @param {*} gameroundid 
      * @param {*} playerid 
      */
-    static getPlayerScore(playerid) {
-        var p = memorydb.PLAYERS.get(playerid)
-        if (!p)
-            return 0
-        return p.score
+    static getPlayerScore(gameroundid, playerid) {
+
+        var p = new Promise((resolve) => {
+            memorydb.PLAYERS.get(gameroundid, (error, players) => {
+                if (error || !players) resolve(0)
+                else {
+                    var player = players.get(playerid)
+                    if (!player) resolve(0)
+                    else {
+                        resolve(player.player_score)
+                    }
+                }
+            })
+        })
+        return p
     }
     /**
      * get score of all player
      * @param {*} gameroundid 
      */
     static getRoundPlayerScore(gameroundid) {
-        var info = {}
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (!round)
-            return info
-        info.players = round.getAllPlayersInfo.sort((x, y) => {
-            return x.score < y.score
+        var p = new Promise((resolve) => {
+            memorydb.PLAYERS.get(gameroundid, (error, players) => {
+                if (error || !players) resolve({})
+                else {
+                    var ar = new Array()
+                    players.forEach(player => {
+                        ar.push({ player_id: player.player_id, score: player.player_score })
+                    })
+                    resolve({ 'players': ar })
+                }
+            })
         })
-        return info
+        return p
     }
     /**
      * get the index in the round
      * @param {*} playerid 
      */
-    static getRoundPosition(playerid) {
-        var p = memorydb.PLAYERS.get(playerid)
-        if (!p)
-            return -1
-        var round = memorydb.GAMEROUNDS.get(p.gameRoundId)
-        var pScores = round.getAllPlayersInfo
-        var position = 1
-        pScores.forEach(x => {
-            if (x.score > p.score)
-                position++
+    static getRoundPosition(gameroundid, playerid) {
+        var p = new Promise((resolve) => {
+            memorydb.PLAYERS.get(gameroundid, (error, players) => {
+                if (error || !players) resolve({})
+                else {
+                    var position = 1
+                    var score = players.get(playerid).player_score
+                    players.forEach(x => {
+                        if (x.player_score > score)
+                            position++
+                    })
+                    resolve(position)
+                }
+            })
         })
-        return position
-    }
-    /**
-     * initialize the round
-     * @param {*} gameroundid 
-     */
-    static resetRound(gameroundid) {
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (!round)
-            return round.resetRound()
+        return p
     }
 
     /**
@@ -110,56 +200,105 @@ class memorydb {
      * set the game is done, remove out of memorydb
      */
     static gameRoundDone(gameroundid) {
-        memorydb.GAMEROUNDS.delete(gameroundid)
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error || !rounds)
+                    resolve(false)
+                else {
+                    var round = rounds.get(gameroundid)
+                    if (!round) resolve(true)
+                    else {
+                        rounds.delete(gameroundid)
+                        memorydb.GAMEROUNDS.set(GAMEROUNDS_STRING, rounds)
+                        memorydb.PLAYERS.remove(gameroundid)
+                        resolve(true)
+                    }
+                }
+            })
+        })
+        return p
     }
     /**
      * check if the round exist in memory db
      * @param {*} gameroundid 
      */
     static isRoundExist(gameroundid) {
-        return memorydb.GAMEROUNDS.has(gameroundid)
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error || !rounds) resolve(false)
+                else {
+                    if (rounds.get(gameroundid))
+                        resolve(true)
+                    else
+                        resolve(false)
+                }
+            })
+        })
+        return p
     }
     /**
      * check if the round is running if running, no player can be added
      * @param {*} gameroundid 
      */
     static isGameRoundRuning(gameroundid) {
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (round) {
-            return round.isRoundRuning
-        }
-        return false
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error || !rounds) resolve(false)
+                else {
+                    var round = rounds.get(gameroundid)
+                    if (!round) resolve(false)
+                    else
+                        resolve(round.roundruning)
+                }
+            })
+        })
+        return p
     }
     /**
      * check if the round is finished(one player finished the game), if the round finished, cannot udpate the player score and also can not add player to the round
      * @param {*} gameroundid 
      */
     static isGameRoundOver(gameroundid) {
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (round) {
-            return round.isRoundOver
-        }
-        return true
+        var p = new Promise((resolve) => {
+            memorydb.GAMEROUNDS.get(GAMEROUNDS_STRING, (error, rounds) => {
+                if (error || !rounds) resolve(true)
+                else {
+                    var round = rounds.get(gameroundid)
+                    if (!round) resolve(true)
+                    else
+                        resolve(round.roundOver)
+                }
+            })
+        })
+        return p
     }
 
     static isEmpty(gameroundid) {
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (round) {
-            return round.isEmpty
-        }
-        return true
+        var p = new Promise((resolve) => {
+            memorydb.PLAYERS.get(gameroundid, (error, players) => {
+                if (error || !players) resolve(false)
+                else {
+                    resolve(players.size === 0)
+                }
+            })
+        })
+        return p
     }
 
     static hasPlayer(gameroundid, playerid) {
-        var round = memorydb.GAMEROUNDS.get(gameroundid)
-        if (round) {
-            return round.isPlayerExist(playerid)
-        }
-        return false
+        var p = new Promise((resolve) => {
+            memorydb.PLAYERS.get(gameroundid, (error, players) => {
+                if (error || !players) resolve(false)
+                else {
+                    resolve(players.get(playerid))
+                }
+            })
+        })
+        return p
     }
 }
 
-memorydb.GAMEROUNDS = new Map()   //key: game id, value: game
-memorydb.PLAYERS = new Map()
+memorydb.GAMEROUNDS = new redisClient()   //key: 'GAMEROUNDS_STRING', value: Map(roundid, round)
+memorydb.PLAYERS = new redisClient()   //key: game_round_id, value: Map(player_id: player) all players in the game round
 
 module.exports = memorydb
