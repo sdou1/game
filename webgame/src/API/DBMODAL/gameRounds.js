@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
         game_id: DataTypes.BIGINT(11),
         name: DataTypes.STRING,
         creator_id: DataTypes.BIGINT(11),
-        state: { type: DataTypes.BIGINT(11), defaultValue: GameRoundStates.created },
+        state: { field:'assm_state' type: DataTypes.BIGINT(11), defaultValue: GameRoundStates.created },
         start_at: DataTypes.DATE,
         end_at: DataTypes.DATE,
         desc: DataTypes.TEXT,
